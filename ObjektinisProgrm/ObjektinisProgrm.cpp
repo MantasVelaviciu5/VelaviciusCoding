@@ -3,66 +3,71 @@
 #include <iomanip>
 #include <string>
 #include <algorithm>
+#include <vector>
+#include <ctime>
 
 using std::cout; using std::cin; using std::endl; using std::string;
-using std::left; using std::right; using std::setw;
+using std::left; using std::right; using std::setw; using std::vector;
 
-
-struct stud {
+struct Studentas {
     string vardas = "", pavarde = "";
-    int kiekpaz = 0, paz[10] = { 0 }, egz = 0;  // kiekpaz - pazymiu skaicius, paz - pazymiai, egz - egzamino rezultatas;
-    double galut = 0, mediana = 0; // galut - galutinis studento ivertinimas;
+    int paz[100] = { 0 }, egz = 0;
 };
 
-void ivestis(stud& temp);
-void isvestis(stud& temp);
-void galutskaic(stud& temp); // Funkcija, kuri suskaiciuoja mokinio galutini pazymi;
-void medskaic(stud& temp); // Funkcija, kuri randa mediana;
+void ivestis(vector<Studentas>& stud, int ciklas);
+void isvestis(vector<Studentas>& stud, int ciklas);
+double galutskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri suskaiciuoja mokinio galutini pazymi;
+double medskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri randa mediana;
 
-int kiekstud = 0;
+int kiekpaz = 0;
 
 int main()
-{   
-    kiekstud = 1;
-    // cout << "Iveskite studentu skaiciu: "; cin >> kiekstud; // Galima butu padaryti, kad studento skaiciu irgi galima ivesti;
-    stud* masyvas = new stud[kiekstud];
-    for (int i = 0; i < kiekstud; i++) {
-        ivestis(masyvas[i]);
-        galutskaic(masyvas[i]);
-        medskaic(masyvas[i]);
-    }
-    cout << left << setw(20) << "Pavarde" << left << setw(20) << "Vardas" << left << setw(20) << "Galutinis (Vid.)" << left << setw(20) << "Galutinis (Med.)" << endl;
-    cout << " --------------------------------------------------------------------------- " << endl;
-    for (int i = 0; i < kiekstud; i++) {
-        isvestis(masyvas[i]);
-    }
-    delete[] masyvas;
+{
+    char Status = 't';  // Statuso kintamasis, kuris ziuri, kiek bus mokiniu;
+    int ciklas = 0;     // Laikinas kintamasis, kuris pasako, kur esame vektoriuje; 
+    vector<Studentas> stud;
+    while (Status == 't'){
+        ivestis(stud, ciklas);
+        cout << " Itraukti dar viena studenta? [t / n]?: "; cin >> Status;
+        ciklas++;
+    }   
+    isvestis(stud, ciklas);
     system("pause");
 }
 
-void ivestis(stud& temp) {
-    cout << " Iveskite studento Varda: "; cin >> temp.vardas;
-    cout << " Iveskite studento Pavarde: "; cin >> temp.pavarde;
-    cout << " Iveskite ND pazymiu kieki: "; cin >> temp.kiekpaz;
-    for (int i = 0; i < temp.kiekpaz; i++) {
-        cout << " Iveskite ND pazymi " << i + 1 << ": "; cin >> temp.paz[i];
+void ivestis(vector<Studentas>&stud, int ciklas) {
+    cout << " Iveskite studento Varda: "; 
+    stud.push_back(Studentas());
+    cin >> stud[ciklas].vardas;
+    cout << " Iveskite studento Pavarde: "; cin >> stud[ciklas].pavarde;
+
+    char stat = 't';
+    while (stat == 't') {
+        cout << " Iveskite ND pazymi " << kiekpaz + 1 << " : "; cin >> stud[ciklas].paz[kiekpaz];
+        kiekpaz++;
+        cout << " Ar norite ivesti dar viena pazymi? [t / n]?: "; cin >> stat;
     }
-    cout << " Iveskite egzamino ivertinima: "; cin >> temp.egz;
+    cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
     
 }
-void isvestis(stud& temp) {
-    cout << left << setw(20) << temp.pavarde << left << setw(20) << temp.vardas << left << setw(20) << std::fixed << std::setprecision(2) << temp.galut <<
-        left << setw(20) << std::fixed << std::setprecision(2) << (double) temp.mediana << endl;
+void isvestis(vector<Studentas>& stud, int ciklas) {
+    cout << left << setw(20) << "Pavarde" << left << setw(20) << "Vardas" << left << setw(20) << "Galutinis (Vid.)" << left << setw(20) << "Galutinis (Med.)" << endl;
+    cout << " --------------------------------------------------------------------------- " << endl;
+    for (int i = 0; i < ciklas; i++) 
+        cout << endl << left << setw(20) << stud[i].pavarde << left << setw(20) << stud[i].vardas << left << setw(20) << std::fixed << std::setprecision(2) << galutskaic(stud, i) <<
+            left << setw(20) << std::fixed << std::setprecision(2) << medskaic(stud, i) << endl;
 }
-void galutskaic(stud& temp) {
+double galutskaic(vector<Studentas>& stud, int ciklas) {
     int suma = 0;
-    for (int i = 0; i < temp.kiekpaz; i++)
-        suma += temp.paz[i];
-    temp.galut = 0.4 * (suma / temp.kiekpaz) + 0.6 * temp.egz;
+    for (int i = 0; i < kiekpaz; i++)
+        suma += stud[ciklas].paz[i];
+     return 0.4 * (suma / kiekpaz) + 0.6 * stud[ciklas].egz;
+     
 }
-void medskaic(stud& temp) {
-    std::sort(temp.paz, temp.paz+temp.kiekpaz);
-    if (temp.kiekpaz % 2 == 0)
-        temp.mediana = (double) (temp.paz[(temp.kiekpaz / 2) - 1] + temp.paz[temp.kiekpaz / 2]) / 2.0;
-    else temp.mediana = (double) temp.paz[(temp.kiekpaz - 1) / 2];
+double medskaic(vector<Studentas>& stud, int ciklas) {
+    std::sort(stud[ciklas].paz, stud[ciklas].paz + kiekpaz);
+    if (kiekpaz % 2 == 0)
+        return (stud[ciklas].paz[(kiekpaz / 2) - 1] + stud[ciklas].paz[kiekpaz / 2]) / 2.0;
+    else return stud[ciklas].paz[(kiekpaz - 1) / 2];
+     
 }
