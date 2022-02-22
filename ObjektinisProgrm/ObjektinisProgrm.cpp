@@ -12,7 +12,7 @@ using std::left; using std::right; using std::setw; using std::vector;
 
 struct Studentas {
     string vardas = "", pavarde = "";
-    int paz[100] = { 0 }, egz = 0;
+    int kiekpazymiu = 0, paz[100] = { 0 }, egz = 0;
 };
 void nustatymai();
 void ivestis(vector<Studentas>& stud, int ciklas);
@@ -20,7 +20,6 @@ void isvestis(vector<Studentas>& stud, int ciklas);
 double galutskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri suskaiciuoja mokinio galutini pazymi;
 double medskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri randa mediana;
 
-int kiekpaz = 0;
 char random, zpaz, rezultatas; /* random - kintamasis, kuris pasako, ar zmogus nores random budu generuoti pazymius ar ne;
                                zpaz - kintamasis, kuris pasako, ar zmogus zino pazymiu skaiciu ar ne; rezultatas - pasako, 
                                ar zmogus nores galutini rezultata gauti pagal formule ar kaip moduli; */
@@ -42,8 +41,7 @@ int main()
 void nustatymai() {
     cout << " Ar pazymiu kiekis yra zinomas is anksto? [t / n]?: "; cin >> zpaz;
     if (zpaz == 't') {
-        cout << "   Iveskite ta skaiciu: "; cin >> kiekpaz;
-        cout << " Ar norite, kad ND pazymiai ir egzamino rezultatas butu sugeneruoti automatiskai? [t / n]? :"; cin >> random;
+        cout << " Ar norite, kad ND pazymiai ir egzamino rezultatas butu sugeneruoti automatiskai? [t / n]? : "; cin >> random;
     }
     cout << " Skaiciuojant galutini rezultata norite, kad butu naudojamas pazymiu vidurkis [v] ar pazymiu mediana [m]? [v / m]?: "; cin >> rezultatas;
 }
@@ -55,9 +53,10 @@ void ivestis(vector<Studentas>& stud, int ciklas) {
     cout << " Iveskite studento Pavarde: "; cin >> stud[ciklas].pavarde;
 
     if (random == 't' && zpaz == 't') {
+        cout << " Iveskite pazymiu kieki: "; cin >> stud[ciklas].kiekpazymiu;
         srand(static_cast<unsigned int> (std::time(NULL)));
         int i = 0;
-        while (i < kiekpaz) {
+        while (i < stud[ciklas].kiekpazymiu) {
             stud[ciklas].paz[i] = rand() % 10 + 1;
             i++;
         }
@@ -66,14 +65,15 @@ void ivestis(vector<Studentas>& stud, int ciklas) {
     else if (zpaz == 'n') {
         char status = 't';
         while (status == 't') {
-            cout << " Iveskite ND pazymi nr. " << kiekpaz + 1 << ": "; cin >> stud[ciklas].paz[kiekpaz];
-            kiekpaz++;
+            cout << " Iveskite ND pazymi nr. " << stud[ciklas].kiekpazymiu + 1 << ": "; cin >> stud[ciklas].paz[stud[ciklas].kiekpazymiu];
+            stud[ciklas].kiekpazymiu++;
             cout << "   Itraukti dar viena pazymi? [t / n]?: "; cin >> status;
         }
         cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
     }
     else {
-        for (int i = 0; i < kiekpaz; i++) {
+        cout << " Iveskite pazymiu kieki: "; cin >> stud[ciklas].kiekpazymiu;
+        for (int i = 0; i < stud[ciklas].kiekpazymiu; i++) {
             cout << " Iveskite ND pazymi nr. " << i + 1 << ": "; cin >> stud[ciklas].paz[i];
             } 
         cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
@@ -90,17 +90,17 @@ void isvestis(vector<Studentas>& stud, int ciklas) {
 double galutskaic(vector<Studentas>& stud, int ciklas) {
     if (rezultatas == 'v') {
         int suma = 0;
-        for (int i = 0; i < kiekpaz; i++)
+        for (int i = 0; i < stud[ciklas].kiekpazymiu; i++)
             suma += stud[ciklas].paz[i];
-        return 0.4 * (suma / kiekpaz) + 0.6 * stud[ciklas].egz;
+        return 0.4 * (suma / stud[ciklas].kiekpazymiu) + 0.6 * stud[ciklas].egz;
     }
     else 
-        return 0.4 * (medskaic(stud, ciklas) / kiekpaz) + 0.6 * stud[ciklas].egz;
+        return 0.4 * (medskaic(stud, ciklas) / stud[ciklas].kiekpazymiu) + 0.6 * stud[ciklas].egz;
 }
 double medskaic(vector<Studentas>& stud, int ciklas) {
-    std::sort(stud[ciklas].paz, stud[ciklas].paz + kiekpaz);
-    if (kiekpaz % 2 == 0)
-        return (stud[ciklas].paz[(kiekpaz / 2) - 1] + stud[ciklas].paz[kiekpaz / 2]) / 2.0;
-    else return stud[ciklas].paz[(kiekpaz - 1) / 2];
+    std::sort(stud[ciklas].paz, stud[ciklas].paz + stud[ciklas].kiekpazymiu);
+    if (stud[ciklas].kiekpazymiu % 2 == 0)
+        return (stud[ciklas].paz[(stud[ciklas].kiekpazymiu / 2) - 1] + stud[ciklas].paz[stud[ciklas].kiekpazymiu / 2]) / 2.0;
+    else return stud[ciklas].paz[(stud[ciklas].kiekpazymiu - 1) / 2];
 
 }
