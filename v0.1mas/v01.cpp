@@ -18,7 +18,8 @@ struct Studentas {
 };
 void ivestis_ranka(vector<Studentas>& stud, int ciklas);
 void ivestis_is_failo(vector<Studentas>& stud, int ciklas, ifstream& file);
-void isvestis(vector<Studentas>& stud, int ciklas);
+int kiek_pazymiu(ifstream& file);
+void isvestis(vector<Studentas>& stud, int ciklas, char skaityti_is_failo);
 double galutskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri suskaiciuoja mokinio galutini pazymi;
 double medskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri randa mediana;
 
@@ -52,7 +53,7 @@ int main()
     }
         file.close();
     }
-    isvestis(stud, ciklas);
+    isvestis(stud, ciklas, skaityti_is_failo);
     system("pause");
 }
 
@@ -109,14 +110,8 @@ void ivestis_ranka(vector<Studentas>& stud, int ciklas) {
 
 void ivestis_is_failo(vector<Studentas>& stud, int ciklas, ifstream& file) {
         string a;
-        int kiekpaz = 0, suma = 0, egzaminas, masyvas[1000000]; // Laikini kintamieji;
-        while (true) {
-            file >> a;
-            kiekpaz++;
-            if (a == "Egz.")
-                break;
-        }
-        kiekpaz -= 3;
+        int kiekpaz, suma = 0, egzaminas, masyvas[1000000]; // Laikini kintamieji;
+        kiekpaz = kiek_pazymiu(file);
         stud.push_back(Studentas());
         file >> stud[ciklas].vardas;
         file >> stud[ciklas].pavarde;
@@ -129,14 +124,24 @@ void ivestis_is_failo(vector<Studentas>& stud, int ciklas, ifstream& file) {
         file >> egzaminas;
         std::sort(masyvas, masyvas + kiekpaz);
         stud[ciklas].vid = 0.4 * (suma / kiekpaz) + 0.6 * egzaminas;
-        if (kiekpaz % 2 == 0) 
-            stud[ciklas].med = masyvas[(kiekpaz / 2) - 1] + masyvas[kiekpaz / 2] / 2.0;
-        else 
-            stud[ciklas].med = masyvas[(kiekpaz - 1) - 2];
-        delete masyvas;
-        ciklas++;
+        if (kiekpaz % 2 == 0)
+            stud[ciklas].med = masyvas[(kiekpaz / 2) - 1] + masyvas[kiekpaz / 2] / 2;
+        else
+            stud[ciklas].med = masyvas[(kiekpaz - 1) / 2];
+        delete[] masyvas;
 }
-
+int kiek_pazymiu(ifstream& file)
+{
+    int x = 0;
+    string a;
+    while (true) {
+        file >> a;
+        x++;
+        if (a == "Egz.")
+            break;
+    }
+    return x - 3;
+}
 void isvestis(vector<Studentas>& stud, int ciklas, char skaityti_is_failo) {
     if (skaityti_is_failo == 'n' || skaityti_is_failo == 'N') {
         cout << left << setw(20) << "Pavarde" << left << setw(20) << "Vardas";
