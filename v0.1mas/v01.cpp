@@ -5,103 +5,140 @@
 #include <algorithm>
 #include <vector>
 #include <ctime>
+#include <fstream>
 
 using std::cout; using std::cin; using std::endl; using std::string;
 using std::left; using std::right; using std::setw; using std::vector;
-
+using std::ifstream;
 
 struct Studentas {
     string vardas = "", pavarde = "";
-    int kiekpazymiu = 0, paz[100] = { 0 }, egz = 0;
+    int kiekpazymiu = 0, paz[10000] = { 0 }, egz = 0;
 };
-void nustatymai();
-void ivestis(vector<Studentas>& stud, int ciklas);
+void ivestis_ranka(vector<Studentas>& stud, int ciklas, char skaityti_is_failo);
+void ivestis_is_failo(vector<Studentas>& stud, int ciklas, char skaityti_is_failo, ifstream& file);
 void isvestis(vector<Studentas>& stud, int ciklas);
 double galutskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri suskaiciuoja mokinio galutini pazymi;
 double medskaic(vector<Studentas>& stud, int ciklas); // Funkcija, kuri randa mediana;
 
-char random, zpaz, rezultatas; /* random - kintamasis, kuris pasako, ar zmogus nores random budu generuoti pazymius ar ne;
+char skaityti_is_failo, random, zpaz, rezultatas='v'; /* random - kintamasis, kuris pasako, ar zmogus nores random budu generuoti pazymius ar ne;
                                zpaz - kintamasis, kuris pasako, ar zmogus zino pazymiu skaiciu ar ne; rezultatas - pasako,
                                ar zmogus nores galutini rezultata gauti pagal formule ar kaip moduli; */
 
 int main()
-{
-    char Status = 't';  // Statuso kintamasis, kuris ziuri, kiek bus mokiniu;
+{   
     int ciklas = 0;     // Laikinas kintamasis, kuris pasako, kur esame vektoriuje; 
     vector<Studentas> stud;
-    nustatymai(); // Funkcija, kuri zmogui leis pasirinkti sios funkcijos nustatymus;
-    while (Status == 't' || Status == 'T') {
-        ivestis(stud, ciklas);
-        cout << " Itraukti dar viena studenta? [t / n]? "; cin >> Status;
+    cout << " Ar pazymius norite ivesti ranka [t] ar skaityti duomenis is failo [n]?: "; cin >> skaityti_is_failo;
+    if (skaityti_is_failo == 'n' || skaityti_is_failo == 'N') {
+        cout << " Ar pazymiu kiekis yra zinomas is anksto? [t / n]?: "; cin >> zpaz;
+        cout << " Ar norite, kad ND pazymiai ir egzamino rezultatas butu sugeneruoti automatiskai? [t / n]? : "; cin >> random;
+        cout << " Skaiciuojant galutini rezultata norite, kad butu naudojamas pazymiu vidurkis [v] ar pazymiu mediana [m]? [v / m]?: "; cin >> rezultatas;
+        char Status = 't';  // Statuso kintamasis, kuris ziuri, ar bus dar vienas mokinys;
+        while (Status == 't' || Status == 'T') {
+            ivestis_ranka(stud, ciklas, skaityti_is_failo);
+            cout << " Itraukti dar viena studenta? [t / n]? "; cin >> Status;
+            ciklas++;
+        }
+    }
+    else {
+        
+        ifstream file("kursiokai.txt");
+        file.open("kursiokai.txt"); 
+        while (!file.eof()) {
+        ivestis_is_failo(stud, ciklas, skaityti_is_failo, file);
         ciklas++;
+    }
+        file.close();
     }
     isvestis(stud, ciklas);
     system("pause");
 }
-void nustatymai() {
-    cout << " Ar pazymiu kiekis yra zinomas is anksto? [t / n]?: "; cin >> zpaz;
-    cout << " Ar norite, kad ND pazymiai ir egzamino rezultatas butu sugeneruoti automatiskai? [t / n]? : "; cin >> random;
-    cout << " Skaiciuojant galutini rezultata norite, kad butu naudojamas pazymiu vidurkis [v] ar pazymiu mediana [m]? [v / m]?: "; cin >> rezultatas;
-}
 
-void ivestis(vector<Studentas>& stud, int ciklas) {
-    cout << " Iveskite studento Varda: ";
-    stud.push_back(Studentas());
-    cin >> stud[ciklas].vardas;
-    cout << " Iveskite studento Pavarde: "; cin >> stud[ciklas].pavarde;
+void ivestis_ranka(vector<Studentas>& stud, int ciklas, char skaityti_is_failo) {
+    if (skaityti_is_failo == 'n' || skaityti_is_failo == 'N') {
+        cout << " Iveskite studento Varda: ";
+        stud.push_back(Studentas());
+        cin >> stud[ciklas].vardas;
+        cout << " Iveskite studento Pavarde: "; cin >> stud[ciklas].pavarde;
 
-    if (random == 't' && zpaz == 't' || random == 'T' && zpaz == 'T') {
-        cout << " Iveskite pazymiu kieki: "; cin >> stud[ciklas].kiekpazymiu;
-        srand(static_cast<unsigned int> (std::time(NULL)));
-        int i = 0;
-        while (i < stud[ciklas].kiekpazymiu) {
-            stud[ciklas].paz[i] = rand() % 10 + 1;
-            i++;
-        }
-        stud[ciklas].egz = rand() % 10 + 1;
-        cout << " Sugeneruoti pazymiai: ";
-        for (int j = 0; j < i; j++) cout << stud[ciklas].paz[j] << ", ";
-        cout << endl << " Sugeneruotas egzamino rezultatas: " << stud[ciklas].egz << endl;
-    }
-    else if (random == 't' && zpaz == 'n' || random == 'T' && zpaz == 'N') {
-        srand(static_cast<unsigned int> (std::time(NULL)));
-        char tempraid = 't'; // Laikinas kintamasis
-        while (tempraid == 't') {
-            stud[ciklas].paz[stud[ciklas].kiekpazymiu] = rand() % 10 + 1;
-            cout << "Sugeneruotas pazymys nr. " << stud[ciklas].kiekpazymiu + 1 << ": " << stud[ciklas].paz[stud[ciklas].kiekpazymiu] << endl;
-            stud[ciklas].kiekpazymiu++;
-            cout << "Ar norite sugeneruoti dar viena pazymi? [t / n]?: "; cin >> tempraid;
-        }
-        stud[ciklas].egz = rand() % 10 + 1;
-        cout << " Sugeneruotas egzamino pazymys: " << stud[ciklas].egz << endl;
-    }
-    else if (random == 'n' && zpaz == 'n' || random == 'N' && zpaz == 'N') {
-        int tempsk = 0; // Laikinas kintamasis
-        while (tempsk <= 10 && tempsk >= 0) {
-            cout << " Iveskite ND pazymi nr. " << stud[ciklas].kiekpazymiu + 1 << " arba rasykite '-1' jei norite nutraukti pazymiu vedima : "; cin >> tempsk;
-            if (tempsk <= 10 && tempsk >= 0) {
-                stud[ciklas].paz[stud[ciklas].kiekpazymiu] = tempsk;
-                stud[ciklas].kiekpazymiu++;
+        if (random == 't' && zpaz == 't' || random == 'T' && zpaz == 'T') {
+            cout << " Iveskite pazymiu kieki: "; cin >> stud[ciklas].kiekpazymiu;
+            srand(static_cast<unsigned int> (std::time(NULL)));
+            int i = 0;
+            while (i < stud[ciklas].kiekpazymiu) {
+                stud[ciklas].paz[i] = rand() % 10 + 1;
+                i++;
             }
+            stud[ciklas].egz = rand() % 10 + 1;
+            cout << " Sugeneruoti pazymiai: ";
+            for (int j = 0; j < i; j++) cout << stud[ciklas].paz[j] << ", ";
+            cout << endl << " Sugeneruotas egzamino rezultatas: " << stud[ciklas].egz << endl;
         }
-        cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
-    }
-    else { // Kai random = n ir zpaz = t;
-        cout << " Iveskite pazymiu kieki: "; cin >> stud[ciklas].kiekpazymiu;
-        for (int i = 0; i < stud[ciklas].kiekpazymiu; i++) {
-            cout << " Iveskite ND pazymi nr. " << i + 1 << ": "; cin >> stud[ciklas].paz[i];
+        else if (random == 't' && zpaz == 'n' || random == 'T' && zpaz == 'N') {
+            srand(static_cast<unsigned int> (std::time(NULL)));
+            char tempraid = 't'; // Laikinas kintamasis
+            while (tempraid == 't') {
+                stud[ciklas].paz[stud[ciklas].kiekpazymiu] = rand() % 10 + 1;
+                cout << "Sugeneruotas pazymys nr. " << stud[ciklas].kiekpazymiu + 1 << ": " << stud[ciklas].paz[stud[ciklas].kiekpazymiu] << endl;
+                stud[ciklas].kiekpazymiu++;
+                cout << "Ar norite sugeneruoti dar viena pazymi? [t / n]?: "; cin >> tempraid;
+            }
+            stud[ciklas].egz = rand() % 10 + 1;
+            cout << " Sugeneruotas egzamino pazymys: " << stud[ciklas].egz << endl;
         }
-        cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
+        else if (random == 'n' && zpaz == 'n' || random == 'N' && zpaz == 'N') {
+            int tempsk = 0; // Laikinas kintamasis
+            while (tempsk <= 10 && tempsk >= 0) {
+                cout << " Iveskite ND pazymi nr. " << stud[ciklas].kiekpazymiu + 1 << " arba rasykite '-1' jei norite nutraukti pazymiu vedima : "; cin >> tempsk;
+                if (tempsk <= 10 && tempsk >= 0) {
+                    stud[ciklas].paz[stud[ciklas].kiekpazymiu] = tempsk;
+                    stud[ciklas].kiekpazymiu++;
+                }
+            }
+            cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
+        }
+        else { // Kai random = n ir zpaz = t;
+            cout << " Iveskite pazymiu kieki: "; cin >> stud[ciklas].kiekpazymiu;
+            for (int i = 0; i < stud[ciklas].kiekpazymiu; i++) {
+                cout << " Iveskite ND pazymi nr. " << i + 1 << ": "; cin >> stud[ciklas].paz[i];
+            }
+            cout << " Iveskite egzamino pazymi: "; cin >> stud[ciklas].egz;
+        }
     }
 }
-void isvestis(vector<Studentas>& stud, int ciklas) {
+    // DUOMENU SKAITYMAS IS FAILO ----------------------------------------
+void ivestis_is_failo(vector<Studentas>& stud, int ciklas, char skaityti_is_failo, ifstream& file) {
+    if (skaityti_is_failo == 't' || skaityti_is_failo == 'T') {
+        string a;
+        while (true) {
+            file >> a;
+            stud[ciklas].kiekpazymiu++;
+            if (a == "Egz.")
+                break;
+        }
+        stud[ciklas].kiekpazymiu -= 3;
+        stud.push_back(Studentas());
+        file >> stud[ciklas].vardas;
+        file >> stud[ciklas].pavarde;
+        int laikinas;
+        for (int i = 0; i < stud[ciklas].kiekpazymiu; i++) {
+            file >> laikinas;
+            stud[ciklas].paz[i] = laikinas;
+        }
+        file >> stud[ciklas].egz;
+        ciklas++;
+    }
+}
+
+void isvestis(vector<Studentas>& stud, int ciklas, char skaityti_is_failo) {
     cout << left << setw(20) << "Pavarde" << left << setw(20) << "Vardas";
     if (rezultatas == 'v' || rezultatas == 'V') cout << left << setw(20) << "Galutinis (Vid.)" << endl;
     else cout << left << setw(20) << "Galutinis (Med.)" << endl;
     cout << " --------------------------------------------------------- " << endl;
     for (int i = 0; i < ciklas; i++)
         cout << left << setw(20) << stud[i].pavarde << left << setw(20) << stud[i].vardas << left << setw(20) << std::fixed << std::setprecision(2) << galutskaic(stud, i) << endl;
-}
+} 
 double galutskaic(vector<Studentas>& stud, int ciklas) {
     if (rezultatas == 'v' || rezultatas == 'V') {
         int suma = 0;
